@@ -247,6 +247,7 @@ form{
 .dropdown-menu--visible{
   display: inherit;
   position: inherit;
+  z-index: 0;
 }
 .selection--remove {
     border: 1px solid lightgrey;
