@@ -1,2 +1,2 @@
-release: python setup.py
+release: setup.py
 web: gunicorn main
