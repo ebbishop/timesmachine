@@ -16,6 +16,13 @@
               placeholder="Choose Start Date"
               class="float-left"
             ></datepicker>
+            <label for="remove-begin-date" class="sr-only">Clear Begin Date</label>
+            <i
+              id="remove-begin-date"
+              class="btn fas fa-times"
+              :disabled="!!!beginDate"
+              v-on:click="beginDate = null"
+            ></i>
           </div>
           <div class="form-group form-group--inline col-md-4">
             <label for="end-date" class="sr-only">End Date</label>
@@ -25,6 +32,13 @@
               placeholder="Choose End Date"
               class="float-left"
             ></datepicker>
+            <label for="remove-end-date" class="sr-only">Clear End Date</label>
+            <i
+              id="remove-end-date"
+              class="btn fas fa-times"
+              :disabled="!!!endDate"
+              v-on:click="endDate = null"
+            ></i>
           </div>
         </div>
         <div class="form-row" id="sort">
@@ -32,7 +46,7 @@
             <label for="sort-order" class="sr-only">Sort by</label>
             <select class="float-left" v-model="sort">
               <option value="newest">Show Newest First</option>
-              <option value="oldest">Show Oldest First</option>
+              <option value="oldest" :disabled="beginDate ? false : true">Show Oldest First</option>
             </select>
           </div>
         </div>
@@ -83,25 +97,42 @@
       </form>
     </div>
     <div class="container article-container">
-      <div></div>
-      <div v-for="article in articles" class="row article">
-        <div class="col-md-4" v-if="getSmallestImage(article.multimedia)">
-          <img
-            :src="getSmallestImage(article.multimedia)"
-            :href="article.web_url"
-          >
-        </div>
-        <div v-else class="col-md-2"></div>
-        <div class="col-md-8">
-          <p><a :href="article.web_url" class="h3 a">{{article.headline.main}}</a></p>
-          <p v-if="article.byline && article.byline.original">{{article.byline.original}}</p>
-          <p>
-            <time
-              :datetime="article.pub_date.slice(0,10)"
-            >{{formatDate(Date.parse(article.pub_date), 'D MMM YYYY')}}</time>
-          </p>
-        </div>
+      <div
+        v-if="loading"
+        class="lead brand-font"
+      >Loading
+        <span class="anim-loading">.</span>
+        <span class="anim-loading">.</span>
+        <span class="anim-loading">.</span>
       </div>
+      <div
+        class="lead"
+        v-else-if="error"
+      >Something seems to be wrong - try again soon.</div>
+      <div
+        class="lead"
+        v-else-if="articleCt === 0"
+      >No stories found using these parameters.</div>
+      <template v-else>
+        <div v-for="article in articles" class="row article">
+          <div class="col-md-4" v-if="getSmallestImage(article.multimedia)">
+            <img
+              :src="getSmallestImage(article.multimedia)"
+              :href="article.web_url"
+            >
+          </div>
+          <div v-else class="col-md-2"></div>
+          <div class="col-md-8">
+            <p><a :href="article.web_url" class="h3 a">{{article.headline.main}}</a></p>
+            <p v-if="article.byline && article.byline.original">{{article.byline.original}}</p>
+            <p>
+              <time
+                :datetime="article.pub_date.slice(0,10)"
+              >{{formatDate(Date.parse(article.pub_date), 'D MMM YYYY')}}</time>
+            </p>
+          </div>
+        </div>
+      </template>
     </div>
     <div class="container paginator">
       <div>
@@ -115,7 +146,7 @@
     </div>
     <footer class="container">
       <a href="https://github.com/ebbishop" class="brand brand-font anim-typewriter">A Bashirian-Bishop Project</a>
-      <a href="https://github.com/ebbishop/timesmachine" class="fab fa-github fa-2x"></a>
+      <a href="https://github.com/ebbishop/timesmachine" class="icon-link fab fa-github fa-2x"></a>
       <a class="ny-times-attribution" href="http://developer.nytimes.com"></a>
     </footer>
   </div>
@@ -146,7 +177,8 @@ export default {
       // pagination
       articleCt: 0,
       // in-progress
-      loading: false,
+      loading: true,
+      error: false,
     };
   },
   components: {
@@ -187,14 +219,19 @@ export default {
       };
       if (this.beginDate) params.begin_date = this.formatDate(this.beginDate, 'YYYYMMDD');
       if (this.endDate) params.end_date = this.formatDate(this.endDate, 'YYYYMMDD');
-      // section_name:("Food")
       axios.get('/get_articles', {
         params,
       })
         .then((res) => {
+          console.log(res);
           this.articles = res.data.response.docs;
           this.articleCt = res.data.response.meta.hits;
           this.loading = false;
+          if (res.statusText === 'OK') this.error = false;
+          else this.error = true;
+        }, () => {
+          this.loading = false;
+          this.error = true;
         });
     },
     remove(selection) {
@@ -286,7 +323,7 @@ form{
 }
 .paginator{
   padding-top: 10px;
-  margin-bottom: 60px;
+  margin: 30px 0 60px 0;
 }
 footer > a {
   color: inherit;
@@ -319,6 +356,9 @@ footer > a:hover{
     overflow: hidden;
     transform: translateY(-50%);
 }
+.icon-link:hover{
+  text-decoration: none;
+}
 
 /* Animation */
 .anim-typewriter{
@@ -331,5 +371,24 @@ footer > a:hover{
 @keyframes blinkTextCursor{
   from{border-right-color: rgba(0,0,0,.75);}
   to{border-right-color: transparent;}
+}
+
+span.anim-loading{
+  animation-name: blink;
+  animation-duration: 1.4s;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+  font-size: 2em;
+}
+span.anim-loading:nth-child(2){
+  animation-delay: .2s;
+}
+span.anim-loading:nth-child(3){
+  animation-delay: .4s;
+}
+@keyframes blink{
+  0% { opacity: .2; }
+  20% { opacity: 1; }
+  100% { opacity: .2; }
 }
 </style>
