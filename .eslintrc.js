@@ -30,6 +30,8 @@ module.exports = {
       js: 'never',
       vue: 'never'
     }],
+    // turn off
+    'vue/require-v-for-key': 'off',
     // disallow reassignment of function parameters
     // disallow parameter object manipulation except for specific exclusions
     'no-param-reassign': ['error', {

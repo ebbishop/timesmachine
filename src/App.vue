@@ -2,11 +2,11 @@
   <div id="app" class="container-fluid">
     <div class="container">
       <header>
-        <h1>A New York Times Machine</h1>
+        <h1 class="brand-font">A New York Times Machine</h1>
       </header>
     </div>
     <div class="container">
-      <form action="" method="get" class="" v-on:submit.prevent>
+      <form method="get" class="mx-auto" v-on:submit.prevent>
         <div class="form-row" id="date-range">
           <div class="form-group form-group--inline col-md-4">
             <label for="start-date" class="sr-only">Beginning Date</label>
@@ -38,7 +38,7 @@
         </div>
         <div class="form-row">
           <div class="form-group form-group--inline col-md-6">
-            <div class="dropdown"
+            <div class="dropdown float-left"
             >
               <input
                 type="text"
@@ -52,12 +52,13 @@
                 <div
                   v-for="section in unselectedSections"
                   v-on:click.stop.prevent="selectedSections.push(section)"
+                  class="menu-option"
                   :value="section"
                 >{{section}}</div>
               </div>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="form-group form-group--inline col-md-6">
             <div
               v-for="selection in selectedSections"
               class="btn selection--remove"
@@ -73,7 +74,10 @@
         </div>
         <div class="form-row">
           <div class="form-group form-group--inline col-md-6">
-            <button type="submit" class="float-left btn btn-primary center" v-on:click="submit">Get Articles</button>
+            <button
+              type="submit"
+              class="float-left btn btn-primary center"
+              v-on:click="submit">Get Articles</button>
           </div>
         </div>
       </form>
@@ -94,18 +98,26 @@
           <p>
             <time
               :datetime="article.pub_date.slice(0,10)"
-            >{{formatDate(Date.parse(article.pub_date), 'MM/DD/YYYY')}}</time>
+            >{{formatDate(Date.parse(article.pub_date), 'D MMM YYYY')}}</time>
           </p>
         </div>
       </div>
     </div>
-    <div class="container">
+    <div class="container paginator">
       <div>
         <button v-on:click="getNewPage(-1)" :disabled="page === 0">Previous Page</button>
-        <span>{{page + 1 }} / {{Math.ceil(articleCt / 10) }}</span>
-        <button v-on:click="getNewPage(1)">Next Page</button>
+        <span>Page {{page + 1 }} of {{Math.ceil(articleCt / 10) }}</span>
+        <button
+          v-on:click="getNewPage(1)"
+          :disabled="page === Math.ceil(articleCt / 10)"
+        >Next Page</button>
       </div>
     </div>
+    <footer class="container">
+      <a href="https://github.com/ebbishop" class="brand brand-font anim-typewriter">A Bashirian-Bishop Project</a>
+      <a href="https://github.com/ebbishop/timesmachine" class="fab fa-github fa-2x"></a>
+      <a class="ny-times-attribution" href="http://developer.nytimes.com"></a>
+    </footer>
   </div>
 </template>
 
@@ -158,7 +170,6 @@ export default {
         return `https://nytimes.com/${medImage.url}`;
       }
       return '';
-      // return array.reduce((prev, curr) => prev.width > curr.width ? prev : curr);
     },
     getNewPage(change) {
       this.page = this.page + change;
@@ -170,7 +181,6 @@ export default {
       let selected = this.selectedSections.map(s => `"${s}"`).join(' ');
       selected = `section_name:(${selected})`;
       const params = {
-        'api-key': '93ac857a87c0496497514e971c96cf10',
         fq: selected,
         page: this.page,
         sort: this.sort,
@@ -178,11 +188,10 @@ export default {
       if (this.beginDate) params.begin_date = this.formatDate(this.beginDate, 'YYYYMMDD');
       if (this.endDate) params.end_date = this.formatDate(this.endDate, 'YYYYMMDD');
       // section_name:("Food")
-      axios.get('https://api.nytimes.com/svc/search/v2/articlesearch.json', {
+      axios.get('/get_articles', {
         params,
       })
         .then((res) => {
-          console.log(res.data.response.docs); // eslint-disable-line no-console
           this.articles = res.data.response.docs;
           this.articleCt = res.data.response.meta.hits;
           this.loading = false;
@@ -232,6 +241,7 @@ form{
   border: 1px solid lightgray;
   border-radius: 5px;
   padding: 10px;
+  max-width: 690px;
 }
 .form-group--inline > * {
   display: inline-block;
@@ -249,6 +259,9 @@ form{
   position: inherit;
   z-index: 0;
 }
+.menu-option{
+  padding-left: 5px;
+}
 .selection--remove {
     border: 1px solid lightgrey;
     margin: 2px;
@@ -256,6 +269,9 @@ form{
 }
 .selection--remove svg {
   color: #71777a;
+}
+.article-container{
+  margin-top: 30px;
 }
 .article{
   border-bottom: 1px solid lightgray;
@@ -267,5 +283,53 @@ form{
 .article:last-child{
   border-bottom: none;
   padding-bottom: none;
+}
+.paginator{
+  padding-top: 10px;
+  margin-bottom: 60px;
+}
+footer > a {
+  color: inherit;
+}
+footer > a:hover{
+  color: inherit;
+}
+.ny-times-attribution{
+  background: url(http://static01.nytimes.com/packages/images/developer/logos/poweredby_nytimes_150c.png);
+  width: 150px;
+  display: inline-block;
+  height: 30px;
+  background-repeat: no-repeat;
+}
+
+.brand-font{
+  font-family: 'Cutive Mono', monospace;
+}
+
+.brand{
+    display: block;
+    position: relative;
+    top: 50%;
+    right: 0;
+    width: 15.8em;
+    margin: 0 auto;
+    font-size: 100%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    transform: translateY(-50%);
+}
+
+/* Animation */
+.anim-typewriter{
+  animation: typewriter 4s steps(26) 1s 1 normal both;
+}
+@keyframes typewriter{
+  from{width: 0;}
+  to{width: 15.8em;}
+}
+@keyframes blinkTextCursor{
+  from{border-right-color: rgba(0,0,0,.75);}
+  to{border-right-color: transparent;}
 }
 </style>
