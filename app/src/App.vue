@@ -7,8 +7,20 @@
     </div>
     <div class="container">
       <form method="get" class="mx-auto" v-on:submit.prevent>
-        <div class="form-row" id="date-range">
-          <div class="form-group form-group--inline col-md-4">
+        <div class="float-right">
+          <label
+            for="show-hide-form"
+            class="lightweight"
+          >{{showForm ? 'Hide Search Form': 'Expand Search Form'}}</label>
+          <i
+            v-on:click="showForm = !showForm"
+            :class="showForm ? 'fa-minus' : 'fa-plus'"
+            class="fas lightweight"
+            id="show-hide-form"
+          ></i>
+        </div>
+        <div v-if="showForm" class="form-row" id="date-range">
+          <div class="form-group form-group--inline col-md-6">
             <label for="start-date" class="sr-only">Beginning Date</label>
             <datepicker
               id="start-date"
@@ -19,12 +31,12 @@
             <label for="remove-begin-date" class="sr-only">Clear Begin Date</label>
             <i
               id="remove-begin-date"
-              class="btn fas fa-times"
+              class="btn fas fa-times float-left"
               :class="beginDate ? '' : 'disabled'"
               v-on:click="beginDate = null"
             ></i>
           </div>
-          <div class="form-group form-group--inline col-md-4">
+          <div class="form-group form-group--inline col-md-6">
             <label for="end-date" class="sr-only">End Date</label>
             <datepicker
               id="end-date"
@@ -35,13 +47,13 @@
             <label for="remove-end-date" class="sr-only">Clear End Date</label>
             <i
               id="remove-end-date"
-              class="btn fas fa-times"
+              class="btn fas fa-times float-left"
               :class="endDate ? '' : 'disabled'"
               v-on:click="endDate = null"
             ></i>
           </div>
         </div>
-        <div class="form-row" id="sort">
+        <div v-if="showForm" class="form-row" id="sort">
           <div class="form-group form-group--inline col-md-4">
             <label for="sort-order" class="sr-only">Sort by</label>
             <select class="float-left" v-model="sort">
@@ -50,7 +62,7 @@
             </select>
           </div>
         </div>
-        <div class="form-row">
+        <div v-if="showForm" class="form-row">
           <div class="form-group form-group--inline col-md-6">
             <div class="dropdown float-left"
             >
@@ -86,7 +98,7 @@
             </div>
           </div>
         </div>
-        <div class="form-row">
+        <div v-if="showForm" class="form-row">
           <div class="form-group form-group--inline col-md-6">
             <button
               type="submit"
@@ -171,7 +183,8 @@ export default {
       sort: 'newest',
       // articles
       articles: [],
-      // section search
+      // search
+      showForm: true,
       sectionSearch: '',
       showMenu: true,
       // pagination
@@ -203,13 +216,21 @@ export default {
       }
       return '';
     },
+    scrollToTop() {
+      const scrollTo = document.getElementsByClassName('article-container')[0].offsetTop;
+      window.scrollTo(scrollTo, 0);
+    },
     getNewPage(change) {
       this.page = this.page + change;
       const query = JSON.parse(JSON.stringify(this.$route.query)) || {};
       query.page = this.page + 1;
       this.$router.push({ query });
+      this.getArticles();
+      this.scrollToTop();
     },
     getArticles() {
+      this.loading = true;
+      this.articles = [];
       let selected = this.selectedSections.map(s => `"${s}"`).join(' ');
       selected = `section_name:(${selected})`;
       const params = {
@@ -223,7 +244,6 @@ export default {
         params,
       })
         .then((res) => {
-          console.log(res);
           this.articles = res.data.response.docs;
           this.articleCt = res.data.response.meta.hits;
           this.loading = false;
@@ -279,6 +299,7 @@ form{
   border-radius: 5px;
   padding: 10px;
   max-width: 690px;
+  min-height: 44px;
 }
 .form-group--inline > * {
   display: inline-block;
@@ -330,6 +351,9 @@ footer > a {
 }
 footer > a:hover{
   color: inherit;
+}
+.lightweight{
+  font-size: .8em;
 }
 .ny-times-attribution{
   background: url(http://static01.nytimes.com/packages/images/developer/logos/poweredby_nytimes_150c.png);
