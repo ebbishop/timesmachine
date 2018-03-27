@@ -20,7 +20,7 @@
             <i
               id="remove-begin-date"
               class="btn fas fa-times"
-              :disabled="!!!beginDate"
+              :class="beginDate ? '' : 'disabled'"
               v-on:click="beginDate = null"
             ></i>
           </div>
@@ -36,7 +36,7 @@
             <i
               id="remove-end-date"
               class="btn fas fa-times"
-              :disabled="!!!endDate"
+              :class="endDate ? '' : 'disabled'"
               v-on:click="endDate = null"
             ></i>
           </div>
@@ -275,7 +275,7 @@ export default {
   margin-top: 60px;
 }
 form{
-  border: 1px solid lightgray;
+  border: 1px solid lightgrey;
   border-radius: 5px;
   padding: 10px;
   max-width: 690px;
@@ -311,7 +311,7 @@ form{
   margin-top: 30px;
 }
 .article{
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid lightgrey;
   padding: 10px 0;
 }
 .article:first-child{
@@ -342,7 +342,10 @@ footer > a:hover{
 .brand-font{
   font-family: 'Cutive Mono', monospace;
 }
-
+i.disabled{
+  cursor: inherit;
+  color: lightgrey;
+}
 .brand{
     display: block;
     position: relative;
